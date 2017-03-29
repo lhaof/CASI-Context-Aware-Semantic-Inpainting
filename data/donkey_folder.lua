@@ -11,8 +11,7 @@
     of patent rights can be found in the PATENTS file in the same directory.
 ]]--
 
---require 'image'
-local image = paths.dofile('own_image.lua')
+require 'image'
 paths.dofile('dataset.lua')
 
 -- This file contains the data-loading logic and details.
