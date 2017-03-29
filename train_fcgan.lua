@@ -27,7 +27,7 @@ opt = {
    display_id = 10,        -- display window id.
    display_iter = 50,      -- # number of iterations after which display is updated
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
-   name = 'train_fcgan9',   -- name of the experiment you are running
+   name = 'fcgan',   -- name of the experiment you are running
    manualSeed = 0,         -- 0 means random seed
 
    -- Extra Options:
@@ -41,10 +41,14 @@ opt = {
    loadNetD = '',
    begin_epoch = 1,
 
-   w_adv = 0.001,
-   w_rec = 0.799,
-   w_feat = 0.2,
+   --w_adv = 0.001,
+   --w_rec = 0.799,
+   --w_feat = 0.2,
+   w_adv = 1,
+   w_rec = 799,
+   w_feat = 200,
 
+   -- resnet mean & std
    featNet_mean1 = 0.485,
    featNet_mean2 = 0.456,
    featNet_mean3 = 0.406,
@@ -52,15 +56,18 @@ opt = {
    featNet_std2 = 0.224,
    featNet_std3 = 0.225,
 
-   imgnet_mean1 = 0.475,
-   imgnet_mean2 = 0.457,
-   imgnet_mean3 = 0.408,
+   imgnet20_mean1 = 0.475,
+   imgnet20_mean2 = 0.457,
+   imgnet20_mean3 = 0.408,
    paris_mean1 = 117.0/255.0,
    paris_mean2 = 104.0/255.0,
    paris_mean3 = 123.0/255.0,
    mean_value1 = 0.5,
    mean_value2 = 0.5,
    mean_value3 = 0.5,
+
+   dataset = 'Paris',
+   --dataset = 'ImageNet',
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
@@ -80,6 +87,24 @@ torch.setdefaulttensortype('torch.FloatTensor')
 local DataLoader = paths.dofile('data/data.lua')
 local data = DataLoader.new(opt.nThreads, opt)
 print("Dataset Size: ", data:size())
+
+-- initialize loss weights
+local weight_sum = opt.w_adv + opt.w_feat + opt.w_rec
+opt.w_adv = opt.w_adv * 1.0 / weight_sum
+opt.w_feat = opt.w_feat * 1.0 / weight_sum
+opt.w_rec = opt.w_rec * 1.0 / weight_sum
+
+-- initialize mean values
+if opt.dataset=='Paris' or opt.dataset=='paris' then
+	opt.mean_value1 = opt.paris_mean1
+	opt.mean_value2 = opt.paris_mean2
+	opt.mean_value3 = opt.paris_mean3
+end
+if opt.dataset=='ImageNet' or opt.dataset=='imagenet' then
+	opt.mean_value1 = opt.imgnet20_mean1
+	opt.mean_value2 = opt.imgnet20_mean2
+	opt.mean_value3 = opt.imgnet20_mean3
+end
 
 ---------------------------------------------------------------------------
 -- Initialize network variables
@@ -315,21 +340,21 @@ local fDx = function(x)
    fake_img:copy(real_ctx)
 
    local real_center = real_ctx[{{},{},{1 + opt.fineSize/4, opt.fineSize/2 + opt.fineSize/4},{1 + opt.fineSize/4, opt.fineSize/2 + opt.fineSize/4}}]:clone() -- copy by value
-   real_ctx[{{},{1},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = 0.475 * 2.0 - 1.0
-   real_ctx[{{},{2},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = 0.457 * 2.0 - 1.0
-   real_ctx[{{},{3},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = 0.408 * 2.0 - 1.0
+   real_ctx[{{},{1},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = opt.mean_value1 * 2.0 - 1.0
+   real_ctx[{{},{2},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = opt.mean_value2 * 2.0 - 1.0
+   real_ctx[{{},{3},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred},{1 + opt.fineSize/4 + opt.overlapPred, opt.fineSize/2 + opt.fineSize/4 - opt.overlapPred}}] = opt.mean_value3 * 2.0 - 1.0
 
    real_img:add(1.0):mul(0.5)
    fake_img:add(1.0):mul(0.5)
-   --mean = { 0.485, 0.456, 0.406 },
-   --std = { 0.229, 0.224, 0.225 },
-   input_img[{{},{1},{},{}}]:fill(0.485)
-   input_img[{{},{2},{},{}}]:fill(0.456)
-   input_img[{{},{3},{},{}}]:fill(0.406)
+   --mean = { 0.485, 0.456, 0.406 }
+   --std = { 0.229, 0.224, 0.225 }
+   input_img[{{},{1},{},{}}]:fill( opt.featNet_mean1 )
+   input_img[{{},{2},{},{}}]:fill( opt.featNet_mean2 )
+   input_img[{{},{3},{},{}}]:fill( opt.featNet_mean3 )
    input_img[{{},{},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2}}]:copy(real_img)
-   input_img[{{},{1},{},{}}]:add(-0.485):div(0.229)
-   input_img[{{},{2},{},{}}]:add(-0.456):div(0.224)
-   input_img[{{},{3},{},{}}]:add(-0.406):div(0.225)
+   input_img[{{},{1},{},{}}]:add( -opt.featNet_mean1 ):div( opt.featNet_std1 )
+   input_img[{{},{2},{},{}}]:add( -opt.featNet_mean2 ):div( opt.featNet_std2 )
+   input_img[{{},{3},{},{}}]:add( -opt.featNet_mean3 ):div( opt.featNet_std3 )
    real_feat = featNet:forward(input_img):clone()
    data_tm:stop()
 
@@ -355,13 +380,13 @@ local fDx = function(x)
    fake_clone:add(1.0):mul(0.5)
    fake_img[{{},{},{1 + opt.fineSize/4, opt.fineSize*3/4},{1 + opt.fineSize/4, opt.fineSize*3/4}}]:copy(
       fake_clone[{{},{},{1 + opt.fineSize/4, opt.fineSize*3/4},{1 + opt.fineSize/4, opt.fineSize*3/4}}])
-   input_img[{{},{1},{},{}}]:fill(0.485)
-   input_img[{{},{2},{},{}}]:fill(0.456)
-   input_img[{{},{3},{},{}}]:fill(0.406)
+   input_img[{{},{1},{},{}}]:fill( opt.featNet_mean1 )
+   input_img[{{},{2},{},{}}]:fill( opt.featNet_mean2 )
+   input_img[{{},{3},{},{}}]:fill( opt.featNet_mean3 )
    input_img[{{},{},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2}}]:copy(fake_img)
-   input_img[{{},{1},{},{}}]:add(-0.485):div(0.229)
-   input_img[{{},{2},{},{}}]:add(-0.456):div(0.224)
-   input_img[{{},{3},{},{}}]:add(-0.406):div(0.225)
+   input_img[{{},{1},{},{}}]:add( -opt.featNet_mean1 ):div( opt.featNet_std1 )
+   input_img[{{},{2},{},{}}]:add( -opt.featNet_mean2 ):div( opt.featNet_std2 )
+   input_img[{{},{3},{},{}}]:add( -opt.featNet_mean3 ):div( opt.featNet_std3 )
    fake_feat = featNet:forward(input_img):clone()
    data_tm:stop()
 
@@ -465,15 +490,6 @@ for epoch = opt.begin_epoch, opt.niter do
 	  local logName = 'log_'..opt.name..'_'..epoch
       util.save(modelG, netG, opt.gpu)
       util.save(modelD, netD, opt.gpu)
-	  --os.execute('bash test_fcgan6.sh '..modelG..' '..modelD..' '..logName..' '..opt.gpu..' '..opt.loadSize..' '..opt.fineSize)
-	  --[[
-	  print('testing on train data with '..modelG)
-	  os.execute('DATA_ROOT=imagenet20/train netD='..modelD..' name=\"log_encoder6_'..epoch..'_train\" th test_single_encoder.lua') 
-	  os.execute('DATA_ROOT=imagenet20/train netD='..modelD..' netG='..modelG..' name=\"log_fcgan6_'..epoch..'_train\" th test_single_fcgan6.lua')
-	  print('testing on val data with '..modelG)
-	  os.execute('DATA_ROOT=imagenet20/val netD='..modelD..' name=\"log_encoder6_'..epoch..'_val\" th test_single_encoder.lua')
-	  os.execute('DATA_ROOT=imagenet20/val netD='..modelD..' netG='..modelG..' name=\"log_fcgan6_'..epoch..'_val\" th test_single_fcgan6.lua')
-	  --]]
    end
 
    parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
