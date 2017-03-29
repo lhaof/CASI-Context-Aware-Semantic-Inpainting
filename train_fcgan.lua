@@ -41,12 +41,11 @@ opt = {
    loadNetD = '',
    begin_epoch = 1,
 
-   --w_adv = 0.001,
-   --w_rec = 0.799,
-   --w_feat = 0.2,
    w_adv = 1,
-   w_rec = 799,
-   w_feat = 200,
+   --w_rec = 799,
+   --w_feat = 200,
+   w_rec = 949,
+   w_feat = 50,
 
    -- resnet mean & std
    featNet_mean1 = 0.485,
@@ -93,6 +92,7 @@ local weight_sum = opt.w_adv + opt.w_feat + opt.w_rec
 opt.w_adv = opt.w_adv * 1.0 / weight_sum
 opt.w_feat = opt.w_feat * 1.0 / weight_sum
 opt.w_rec = opt.w_rec * 1.0 / weight_sum
+print("w_adv:"..opt.w_adv.." w_feat:"..opt.w_feat.." w_rec:"..opt.w_rec);
 
 -- initialize mean values
 if opt.dataset=='Paris' or opt.dataset=='paris' then
@@ -105,6 +105,7 @@ if opt.dataset=='ImageNet' or opt.dataset=='imagenet' then
 	opt.mean_value2 = opt.imgnet20_mean2
 	opt.mean_value3 = opt.imgnet20_mean3
 end
+print("mean_value:"..opt.mean_value1.." "..opt.mean_value2.." "..opt.mean_value3)
 
 ---------------------------------------------------------------------------
 -- Initialize network variables
