@@ -317,31 +317,20 @@ function dataset:getByClass(class)
 end
 
 -- converts a table of samples (and corresponding labels) to a clean tensor
-local function tableToOutput(self, dataTable, scalarTable, edgeTable)
-	if opt.use_edge == 1 then assert(edgeTable ~= nil) end
-
-	local data, scalarLabels, labels, edge
+local function tableToOutput(self, dataTable, scalarTable)
+	local data, scalarLabels, labels
 	local quantity = #scalarTable
 	assert(dataTable[1]:dim() == 3)
 	data = torch.Tensor(quantity,
 		self.sampleSize[1], self.sampleSize[2], self.sampleSize[3])
 	scalarLabels = torch.LongTensor(quantity):fill(-1111)
 
-	if opt.use_edge == 1 then 
-		edge = torch.Tensor(quantity, self.sampleSize[1], self.sampleSize[2], self.sampleSize[3])
-	end
-
 	for i=1,#dataTable do
 		data[i]:copy(dataTable[i])
 		scalarLabels[i] = scalarTable[i]
-		if opt.use_edge == 1 then edge[i]:copy(edgeTable[i]) end
 	end
 
-	if opt.use_edge == 1 then
-		assert(edge ~= nil); return data, edge, scalarLabels;
-	else
-		return data, scalarLabels
-	end
+	return data, scalarLabels
 end
 
 local function imageTableToOutput(self, imageTable)
@@ -360,16 +349,12 @@ function dataset:sample(quantity)
 	assert(quantity)
 	local dataTable = {}
 	local scalarTable = {}
-	local edgeTable = {}
 	local imageTable = {}
 	for i=1,quantity do
 		local class = torch.random(1, #self.classes)
 		local out
-		local out_edge
 		local out_feat
-		if opt.use_edge == 1 then
-			out, out_edge = self:getByClass(class)
-		elseif opt.featNet ~= nil and opt.featNet ~= '' then
+		if opt.featNet ~= nil and opt.featNet ~= '' then
 			out, out_feat = self:getByClass(class)
 		else
 			out = self:getByClass(class)
@@ -377,31 +362,21 @@ function dataset:sample(quantity)
 		
 		table.insert(dataTable, out)
 		table.insert(scalarTable, class)
-		if opt.use_edge == 1 then
-			table.insert(edgeTable, out_edge)
-		end
 		if opt.featNet ~= nil and opt.featNet ~= '' then
 			table.insert(imageTable, out_feat)
 		end
 	end
-	local data, scalarLabels, edge, imgs
-	if opt.use_edge == 1 then
-		assert(edgeTable ~= {})
-		data, edge, scalarLabels = tableToOutput(self, dataTable, scalarTable, edgeTable)
-		assert(edge ~= nil)
-		return data, edge, scalarLabels
+	local data, scalarLabels, imgs
+	data, scalarLabels = tableToOutput(self, dataTable, scalarTable)
+	if opt.featNet ~= nil and opt.featNet ~= '' then
+		imgs = imageTableToOutput(self, imageTable)
+		return data, imgs, scalarLabels
 	else
-		data, scalarLabels = tableToOutput(self, dataTable, scalarTable)
-		if opt.featNet ~= nil and opt.featNet ~= '' then
-			imgs = imageTableToOutput(self, imageTable)
-			return data, imgs, scalarLabels
-		else
-			return data, scalarLabels
-		end
+		return data, scalarLabels
 	end
 end
 
-function dataset:get(i1, i2) -- not implemented with using-edge!!!
+function dataset:get(i1, i2) 
    local indices = torch.range(i1, i2);
    local quantity = i2 - i1 + 1;
    assert(quantity > 0)
