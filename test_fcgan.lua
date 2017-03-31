@@ -1,3 +1,4 @@
+
 require 'image'
 require 'cunn'
 require 'cudnn'
@@ -5,7 +6,7 @@ require 'nn'
 util = paths.dofile('util.lua')
 torch.setdefaulttensortype('torch.FloatTensor')
 
-opt = {
+opt = 
     batchNum = 5,
     batchSize = 64,        -- number of samples to produce
                            -- path to the generator network
@@ -25,6 +26,7 @@ opt = {
 	netG = '',
 	mean_value1 = ,
 	mean_value2 = ,
+	mean_value3 = ,
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
@@ -145,8 +147,7 @@ for bat = 1, opt.batchNum do
 	-- 128 x 128 -> 64 x 64
 
 	-- calculate loss
-	local netG_l1loss64
-	local netG_l2loss64
+	local netG_l1loss56
 	local netG_l2loss56
 	local netG_advloss
 	local netG_gloss
