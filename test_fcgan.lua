@@ -207,16 +207,16 @@ for bat = 1, opt.batchNum do
         end
     end
 
-	::continue::
+    ::continue::
 end
 
 if (opt.display_result == 1) then
-	print('batchNum:'..opt.batchNum..' bcnt:'..bcnt)
-	assert(bcnt ~= 0)
-	print('\tnetG_l1loss56_mean:'..netG_l1loss56_tot/bcnt)
-	print('\tnetG_l2loss56_mean:'..netG_l2loss56_tot/bcnt)
+    print('batchNum:'..opt.batchNum..' bcnt:'..bcnt)
+    assert(bcnt ~= 0)
+    print('\tnetG_l1loss56_mean:'..netG_l1loss56_tot/bcnt)
+    print('\tnetG_l2loss56_mean:'..netG_l2loss56_tot/bcnt)
 end
 
 if (opt.display_time == 1) then
-	print('Time elapsed: '..timer:time().real..' seconds')
+    print('Time elapsed: '..timer:time().real..' seconds')
 end
