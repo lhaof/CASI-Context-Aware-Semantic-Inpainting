@@ -7,20 +7,20 @@ util = paths.dofile('util.lua')
 torch.setdefaulttensortype('torch.FloatTensor')
 
 opt = {
-    batchNum = 5,
-    batchSize = 64,        -- number of samples to produce
-                           -- path to the generator network
-    name = 'test_paris_fcgan_wfeat0.5',      
+	batchNum = 5,
+	batchSize = 64,        -- number of samples to produce
+			   -- path to the generator network
+	name = 'test_paris_fcgan_wfeat0.5',      
 						   -- name of the experiment and prefix of file saved
-    gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
-    nc = 3,                -- # of channels in input
-    display = 0,           -- Display image: 0 = false, 1 = true
-    loadSize = 128,        -- resize the loaded image to loadsize maintaining aspect ratio. 0 means don't resize. 
-	                       -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
-    fineSize = 128,        -- size of random crops
-    nThreads = 1,          -- # of data loading threads to use
-    manualSeed = 2017,     -- 0 means random seed
-    overlapPred = 4,       -- overlapping edges of center with context
+	gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
+	nc = 3,                -- # of channels in input
+	display = 0,           -- Display image: 0 = false, 1 = true
+	loadSize = 128,        -- resize the loaded image to loadsize maintaining aspect ratio. 0 means don't resize. 
+			       -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
+	fineSize = 128,        -- size of random crops
+	nThreads = 1,          -- # of data loading threads to use
+	manualSeed = 2017,     -- 0 means random seed
+	overlapPred = 4,       -- overlapping edges of center with context
 	wtl2 = 0.999,
 
 	netG = '',
