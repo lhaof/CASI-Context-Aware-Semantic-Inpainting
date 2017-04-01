@@ -50,6 +50,7 @@ netG = util.load(opt.netG, opt.gpu)
 netG:evaluate()
 
 -- initialize variables
+netG_input = torch.Tensor(opt.batchSize, opt.nc, opt.fineSize, opt.fineSize)
 input_image_ctx = torch.Tensor(opt.batchSize, opt.nc, opt.fineSize, opt.fineSize)
 local label = torch.Tensor(opt.batchSize)
 
