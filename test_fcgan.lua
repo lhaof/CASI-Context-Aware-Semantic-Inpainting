@@ -7,32 +7,32 @@ util = paths.dofile('util.lua')
 torch.setdefaulttensortype('torch.FloatTensor')
 
 opt = {
-	batchNum = 5,
-	batchSize = 64,        -- number of samples to produce
-			   -- path to the generator network
-	name = 'test_paris_fcgan_wfeat0.5',      
-						   -- name of the experiment and prefix of file saved
-	gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
-	nc = 3,                -- # of channels in input
-	display = 0,           -- Display image: 0 = false, 1 = true
-	loadSize = 128,        -- resize the loaded image to loadsize maintaining aspect ratio. 0 means don't resize. 
-			       -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
-	fineSize = 128,        -- size of random crops
-	nThreads = 1,          -- # of data loading threads to use
-	manualSeed = 2017,     -- 0 means random seed
-	overlapPred = 4,       -- overlapping edges of center with context
-	wtl2 = 0.999,
+    batchNum = 5,
+    batchSize = 64,        -- number of samples to produce
+               -- path to the generator network
+    name = 'test_paris_fcgan_wfeat0.5',      
+                           -- name of the experiment and prefix of file saved
+    gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
+    nc = 3,                -- # of channels in input
+    display = 0,           -- Display image: 0 = false, 1 = true
+    loadSize = 128,        -- resize the loaded image to loadsize maintaining aspect ratio. 0 means don't resize. 
+                   -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
+    fineSize = 128,        -- size of random crops
+    nThreads = 1,          -- # of data loading threads to use
+    manualSeed = 2017,     -- 0 means random seed
+    overlapPred = 4,       -- overlapping edges of center with context
+    wtl2 = 0.999,
 
-	netG = '',
-	imgnet20_mean1 = 0.475,
-	imgnet20_mean2 = 0.457,
-	imgnet20_mean3 = 0.408,
-	paris_mean1 = 117.0/255.0,
-	paris_mean2 = 104.0/255.0,
-	paris_mean3 = 123.0/255.0,
-	mean_value1 = 0.5,
-	mean_value2 = 0.5,
-	mean_value3 = 0.5,	
+    netG = '',
+    imgnet20_mean1 = 0.475,
+    imgnet20_mean2 = 0.457,
+    imgnet20_mean3 = 0.408,
+    paris_mean1 = 117.0/255.0,
+    paris_mean2 = 104.0/255.0,
+    paris_mean3 = 123.0/255.0,
+    mean_value1 = 0.5,
+    mean_value2 = 0.5,
+    mean_value3 = 0.5,	
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
@@ -62,59 +62,59 @@ if opt.gpu > 0 then
     require 'cunn'
     cutorch.setDevice(opt.gpu)
     if pcall(require, 'cudnn') then
-        if opt.quiet == 0 then print('Using CUDNN !') end
+    if opt.quiet == 0 then print('Using CUDNN !') end
         require 'cudnn'
         netG = util.cudnn(netG)
     end
     netG:cuda()
-	criterion:cuda()
+    criterion:cuda()
     criterionMSE:cuda()
-	criterionABS:cuda()
+    criterionABS:cuda()
     input_image_ctx = input_image_ctx:cuda()
-	label = label:cuda()
+    label = label:cuda()
     netG_input = netG_input:cuda()
 else
-   netG:float()
+    netG:float()
 end
 if opt.quiet == 0 then
-	print(netG)
-	print(criterionMSE)
+    print(netG)
+    print(criterionMSE)
 end
 
 local tp = function(...)
-	local se; local si; local o = 0;
-	for k,v in ipairs({...}) do
-		if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
-	end
-	return 1 + (se-si)/2 + o
+    local se; local si; local o = 0;
+    for k,v in ipairs({...}) do
+        if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
+    end
+    return 1 + (se-si)/2 + o
 end
 local bt = function(...)
-	local se; local si; local o = 0;
-	for k,v in ipairs({...}) do
-		if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
-	end
-	return (se+si)/2 - o
+    local se; local si; local o = 0;
+    for k,v in ipairs({...}) do
+        if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
+    end
+    return (se+si)/2 - o
 end
 local lf = function(...)
-	local se; local si; local o = 0;
-	for k,v in ipairs({...}) do
-		if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
-	end
-	return 1 + (se-si)/2 + o
+    local se; local si; local o = 0;
+    for k,v in ipairs({...}) do
+        if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
+    end
+    return 1 + (se-si)/2 + o
 end
 local rg = function(...)
-	local se; local si; local o = 0;
-	for k,v in ipairs({...}) do
-		if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
-	end
-	return (se+si)/2 - o
+    local se; local si; local o = 0;
+    for k,v in ipairs({...}) do
+        if k==1 then se=v end;if k==2 then si=v end;if k==3 then o=v end;
+    end
+    return (se+si)/2 - o
 end
 
 local h; local w;
 local ph; local pw;
 local crop_center = function(T, csize)
-	return T[{{},{},{tp(T:size(3), csize), bt(T:size(4), csize)},
-					{lf(T:size(3), csize), rg(T:size(4), csize)}}]:clone()
+    return T[{{},{},{tp(T:size(3), csize), bt(T:size(4), csize)},
+        {lf(T:size(3), csize), rg(T:size(4), csize)}}]:clone()
 end
 
 local netG_l1loss56_tot = 0
