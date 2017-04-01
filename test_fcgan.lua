@@ -6,7 +6,7 @@ require 'nn'
 util = paths.dofile('util.lua')
 torch.setdefaulttensortype('torch.FloatTensor')
 
-opt = 
+opt = {
     batchNum = 5,
     batchSize = 64,        -- number of samples to produce
                            -- path to the generator network
@@ -24,15 +24,15 @@ opt =
 	wtl2 = 0.999,
 
 	netG = '',
-   imgnet20_mean1 = 0.475,
-   imgnet20_mean2 = 0.457,
-   imgnet20_mean3 = 0.408,
-   paris_mean1 = 117.0/255.0,
-   paris_mean2 = 104.0/255.0,
-   paris_mean3 = 123.0/255.0,
-   mean_value1 = 0.5,
-   mean_value2 = 0.5,
-   mean_value3 = 0.5,	
+	imgnet20_mean1 = 0.475,
+	imgnet20_mean2 = 0.457,
+	imgnet20_mean3 = 0.408,
+	paris_mean1 = 117.0/255.0,
+	paris_mean2 = 104.0/255.0,
+	paris_mean3 = 123.0/255.0,
+	mean_value1 = 0.5,
+	mean_value2 = 0.5,
+	mean_value3 = 0.5,	
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
