@@ -33,6 +33,7 @@ opt = {
     mean_value1 = 0.5,
     mean_value2 = 0.5,
     mean_value3 = 0.5,	
+	DATA_ROOT = 'data_root',
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
@@ -163,7 +164,7 @@ for bat = 1, opt.batchNum do
 
     if ( (opt.display_process == 1) and (bcnt % opt.disp_period == 0) ) then
         print('bat:'..bat..' bcnt:'..bcnt
-        ..'\trefNetG_l1loss64:'..refNetG_l1loss56..' netG_l1loss64:'..netG_l1loss56
+        ..'\trefNetG_l1loss56:'..refNetG_l1loss56..' netG_l1loss56:'..netG_l1loss56
         ..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56)
     end
 
