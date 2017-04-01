@@ -161,11 +161,11 @@ for bat = 1, opt.batchNum do
     netG_l1loss56_tot = netG_l1loss56_tot + netG_l1loss56
 	netG_l2loss56_tot = netG_l2loss56_tot + netG_l2loss56
 
-	if ( (opt.display_process == 1) and (bcnt % opt.disp_period == 0) ) then
-		print('bat:'..bat..' bcnt:'..bcnt
-		            ..'\trefNetG_l1loss64:'..refNetG_l1loss56..' netG_l1loss64:'..netG_l1loss56
-					..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56)
-	end
+    if ( (opt.display_process == 1) and (bcnt % opt.disp_period == 0) ) then
+        print('bat:'..bat..' bcnt:'..bcnt
+        ..'\trefNetG_l1loss64:'..refNetG_l1loss56..' netG_l1loss64:'..netG_l1loss56
+        ..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56)
+    end
 
     -- paste predicted center in the context
 	h = netG_ctx:size(3); w = netG_ctx:size(4)
