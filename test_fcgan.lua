@@ -144,9 +144,9 @@ for bat = 1, opt.batchNum do
 	-- do prediction
 	-- fill with imagenet20(fcgan)'s mean value
 	h = netG_ctx:size(3); w = netG_ctx:size(4);
-	netG_ctx[{{},{1},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=2*0.475-1.0
-	netG_ctx[{{},{2},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=2*0.457-1.0
-	netG_ctx[{{},{3},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=2*0.408-1.0
+	netG_ctx[{{},{1},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value1 * 2.0 - 1.0
+	netG_ctx[{{},{2},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value2 * 2.0 - 1.0
+	netG_ctx[{{},{3},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value3 * 2.0 - 1.0
 	netG_input:copy(netG_ctx)
     local netG_pred = netG:forward(netG_input):clone()
 	netG_pred = netG_pred[{{},{},{1 + opt.fineSize/4, opt.fineSize*3/4},{1 + opt.fineSize/4, opt.fineSize*3/4}}]:clone()
@@ -155,29 +155,16 @@ for bat = 1, opt.batchNum do
 	-- calculate loss
 	local netG_l1loss56
 	local netG_l2loss56
-	local netG_advloss
-	local netG_gloss
-	netG_l1loss64 = criterionABS:forward(netG_pred,gt[64]:cuda())
-	netG_l2loss64 = criterionMSE:forward(netG_pred,gt[64]:cuda())
+	netG_l1loss56 = criterionABS:forward(crop_center(netG_pred,56),gt[56]:cuda())
 	netG_l2loss56 = criterionMSE:forward(crop_center(netG_pred,56),gt[56]:cuda())
 
-	local output = netD:forward(netG_pred):clone()
-	label:fill(1)
-	netG_advloss = criterion:forward(output, label)  -- generator aims at approaching real_label
-	netG_gloss = opt.w_rec * netG_l2loss64 + opt.w_adv * netG_advloss
-
-    netG_l1loss64_tot = netG_l1loss64_tot + netG_l1loss64
-	netG_l2loss64_tot = netG_l2loss64_tot + netG_l2loss64
+    netG_l1loss56_tot = netG_l1loss56_tot + netG_l1loss56
 	netG_l2loss56_tot = netG_l2loss56_tot + netG_l2loss56
-	netG_gloss_tot = netG_gloss_tot + netG_gloss
 
 	if ( (opt.display_process == 1) and (bcnt % opt.disp_period == 0) ) then
 		print('bat:'..bat..' bcnt:'..bcnt
-		            ..'\trefNetG_l1loss64:'..refNetG_l1loss64..' netG_l1loss64:'..netG_l1loss64
-					..' refNetG_l2loss64:'..refNetG_l2loss64..' netG_l2loss64:'..netG_l2loss64
-					..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56
-					..' refNetG_advloss:'..refNetG_advloss..' netG_advloss:'..netG_advloss
-					..' refNetG_gloss:'..refNetG_gloss..' netG_gloss:'..netG_gloss)
+		            ..'\trefNetG_l1loss64:'..refNetG_l1loss56..' netG_l1loss64:'..netG_l1loss56
+					..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56)
 	end
 
     -- paste predicted center in the context
@@ -253,8 +240,6 @@ if (opt.display_result == 1) then
 	assert(bcnt ~= 0)
 	print('\tnetG_l1loss56_mean:'..netG_l1loss56_tot/bcnt)
 	print('\tnetG_l2loss56_mean:'..netG_l2loss56_tot/bcnt)
-	print('\tnetG_gloss_mean:'..netG_gloss_tot/bcnt)
-	print('\tnetG_floss_mean:'..netG_floss_tot/bcnt)
 end
 
 if (opt.display_time == 1) then
