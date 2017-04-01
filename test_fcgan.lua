@@ -186,31 +186,6 @@ for bat = 1, opt.batchNum do
 	gt[64]:add(1):mul(0.5)
 	gt[56]:add(1):mul(0.5)
 
-    -- calculate feature loss
-	featNet_input[{{},{1},{},{}}]:fill(0.485)
-	featNet_input[{{},{2},{},{}}]:fill(0.456)
-	featNet_input[{{},{3},{},{}}]:fill(0.406)
-	featNet_input[{{},{},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2}}]:copy(ground_truth)
-
-	featNet_input[{{},{1},{},{}}]:add(-0.485):div(0.229)
-	featNet_input[{{},{2},{},{}}]:add(-0.456):div(0.224)
-	featNet_input[{{},{3},{},{}}]:add(-0.406):div(0.225)
-	local gt_feat = featNet:forward(featNet_input):clone()
-
-	featNet_input[{{},{1},{},{}}]:fill(0.485)
-	featNet_input[{{},{2},{},{}}]:fill(0.456)
-	featNet_input[{{},{3},{},{}}]:fill(0.406)
-	featNet_input[{{},{},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2},{1 + (224-opt.fineSize)/2, (224+opt.fineSize)/2}}]:copy(netG_ctx)
-
-	featNet_input[{{},{1},{},{}}]:add(-0.485):div(0.229)
-	featNet_input[{{},{2},{},{}}]:add(-0.456):div(0.224)
-	featNet_input[{{},{3},{},{}}]:add(-0.406):div(0.225)
-	local netG_feat = featNet:forward(featNet_input):clone()
-
-	local netG_floss = criterionMSE:forward(netG_feat, gt_feat)
-	netG_floss_tot = netG_floss_tot + netG_floss
-	netG_gloss_tot = netG_gloss_tot + opt.w_feat * netG_floss
-
     -- save outputs in a pretty manner
     gt[64]=nil; gt[56]=nil;
 	refNetG_pred=nil; netG_pred=nil;
