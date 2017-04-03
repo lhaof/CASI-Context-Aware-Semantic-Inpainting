@@ -8,8 +8,8 @@ torch.setdefaulttensortype('torch.FloatTensor')
 
 opt = {
     batchNum = 5,
-    batchSize = 64,        -- number of samples to produce
-               -- path to the generator network
+    batchSize = 1,        -- number of samples to produce
+               			   -- path to the generator network
     name = 'test_paris_fcgan_wfeat50',
                            -- name of the experiment and prefix of file saved
     gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
@@ -34,6 +34,7 @@ opt = {
     mean_value2 = 0.5,
     mean_value3 = 0.5,	
 	DATA_ROOT = 'data_root',
+	dataset = 'Paris',
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
@@ -52,8 +53,11 @@ netG:evaluate()
 
 -- initialize variables
 netG_input = torch.Tensor(opt.batchSize, opt.nc, opt.fineSize, opt.fineSize)
-input_image_ctx = torch.Tensor(opt.batchSize, opt.nc, opt.fineSize, opt.fineSize)
-local label = torch.Tensor(opt.batchSize)
+if opt.dataset == 'Paris' then
+	opt.mean_value1 = opt.paris_mean1
+	opt.mean_value2 = opt.paris_mean2
+	opt.mean_value3 = opt.paris_mean3
+end
 
 -- criterion used to compute loss
 criterion = nn.BCECriterion()
@@ -73,8 +77,6 @@ if opt.gpu > 0 then
     criterion:cuda()
     criterionMSE:cuda()
     criterionABS:cuda()
-    input_image_ctx = input_image_ctx:cuda()
-    label = label:cuda()
     netG_input = netG_input:cuda()
 else
     netG:float()
@@ -124,7 +126,6 @@ local netG_l1loss56_tot = 0
 local netG_l2loss56_tot = 0
 
 local timer = torch.Timer()
-local bcnt = 0
 paths.rmall(opt.name,'yes')
 paths.mkdir(opt.name)
 
@@ -139,25 +140,25 @@ table.sort(filenames)
 for i = 1, #filenames do
 	local image_path = filenames[i]
     local image_ctx = image.load(image_path)
-    local refNetG_ctx = image_ctx:clone()
+	image_ctx = image.scale(image_ctx, opt.loadSize)
     local netG_ctx = image_ctx:clone()
     local ground_truth = image_ctx:clone()
-    -- [-1, 1]
+    -- [0, 1]
 
     -- save ground truth
     local gt = {}
-    h = ground_truth:size(3); w = ground_truth:size(4);
-    for k,v in ipairs({56,64}) do
-        gt[v] = ground_truth[{{},{},{tp(h,v),bt(h,v)},{lf(w,v),rg(w,v)}}]:clone()
+    h = ground_truth:size(2); w = ground_truth:size(3);
+    for k,v in ipairs({56}) do
+        gt[v] = ground_truth[{{},{tp(h,v),bt(h,v)},{lf(w,v),rg(w,v)}}]:clone()
     end
-    bcnt = bcnt + 1
 
     -- do prediction
     -- fill with imagenet20(fcgan)'s mean value
-    h = netG_ctx:size(3); w = netG_ctx:size(4);
-    netG_ctx[{{},{1},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value1 * 2.0 - 1.0
-    netG_ctx[{{},{2},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value2 * 2.0 - 1.0
-    netG_ctx[{{},{3},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=mean_value3 * 2.0 - 1.0
+	netG_ctx:mul(2.0):add(-1.0)
+    h = netG_ctx:size(2); w = netG_ctx:size(3);
+    netG_ctx[{{1},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=opt.mean_value1 * 2.0 - 1.0
+    netG_ctx[{{2},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=opt.mean_value2 * 2.0 - 1.0
+    netG_ctx[{{3},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]=opt.mean_value3 * 2.0 - 1.0
     netG_input:copy(netG_ctx)
     local netG_pred = netG:forward(netG_input):clone()
     netG_pred = netG_pred[{{},{},{1 + opt.fineSize/4, opt.fineSize*3/4},{1 + opt.fineSize/4, opt.fineSize*3/4}}]:clone()
@@ -172,62 +173,23 @@ for i = 1, #filenames do
     netG_l1loss56_tot = netG_l1loss56_tot + netG_l1loss56
     netG_l2loss56_tot = netG_l2loss56_tot + netG_l2loss56
 
-    if ( (opt.display_process == 1) and (bcnt % opt.disp_period == 0) ) then
-        print('bat:'..bat..' bcnt:'..bcnt
-        ..'\trefNetG_l1loss56:'..refNetG_l1loss56..' netG_l1loss56:'..netG_l1loss56
-        ..' refNetG_l2loss56:'..refNetG_l2loss56..' netG_l2loss56:'..netG_l2loss56)
-    end
-
     -- paste predicted center in the context
-    h = netG_ctx:size(3); w = netG_ctx:size(4)
+    h = netG_ctx:size(2); w = netG_ctx:size(3)
     ph = netG_pred:size(3); pw = netG_pred:size(4)
-    netG_ctx[{{},{},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]:copy(
+    netG_ctx[{{},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}]:copy(
         netG_pred[{{},{},{tp(ph,56),bt(ph,56)},{lf(pw,56),rg(pw,56)}}])
 
     -- re-transform scale back to normal
-    input_image_ctx:add(1):mul(0.5)
-    image_ctx:add(1):mul(0.5)
     netG_ctx:add(1):mul(0.5)
-
     netG_input:add(1):mul(0.5)
-
     netG_pred:add(1):mul(0.5)
 
-    ground_truth:add(1):mul(0.5)
-    gt[64]:add(1):mul(0.5)
-    gt[56]:add(1):mul(0.5)
-
     -- save outputs in a pretty manner
-    gt[64]=nil; gt[56]=nil;
-    refNetG_pred=nil; netG_pred=nil;
-    local pretty_output = torch.Tensor(4*opt.batchSize, opt.nc, opt.fineSize, opt.fineSize)
+    gt[56]=nil;
+    netG_pred=nil;
 
-    h = refNetG_input:size(3); w = refNetG_input:size(4)
-    refNetG_input[{{},{},{tp(h,56),bt(h,56)},{lf(w,56),rg(w,56)}}] = 1
-
-    for i=1,opt.batchSize do
-        pretty_output[4*i-3]:copy(refNetG_ctx[i])
-        pretty_output[4*i-2]:copy(netG_ctx[i])
-        pretty_output[4*i-1]:copy(refNetG_input[i])
-        pretty_output[4*i]:copy(ground_truth[i])
-    end
-    if (bcnt % opt.save_period == 0) then
-        image.save(opt.name..'/'..opt.name..'_bcnt'..bcnt..'.png',image.toDisplayTensor(pretty_output))
-        if (opt.display_save == 1 ) then
-            print('Saved predictions to: ./'..opt.name..'_b'..bcnt..'.png')
-        end
-    end
-
-    ::continue::
+    image.save(opt.name..'/'..opt.name..'_'..i..'.png',netG_ctx)
 end
-
-if (opt.display_result == 1) then
-    print('batchNum:'..opt.batchNum..' bcnt:'..bcnt)
-    assert(bcnt ~= 0)
-    print('\tnetG_l1loss56_mean:'..netG_l1loss56_tot/bcnt)
-    print('\tnetG_l2loss56_mean:'..netG_l2loss56_tot/bcnt)
-end
-
-if (opt.display_time == 1) then
-    print('Time elapsed: '..timer:time().real..' seconds')
-end
+local nsamp = #filenames
+print('\tnetG_l1loss56_mean:'..netG_l1loss56_tot/nsamp)
+print('\tnetG_l2loss56_mean:'..netG_l2loss56_tot/nsamp)
