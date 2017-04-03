@@ -136,9 +136,9 @@ for f in paths.iterfiles(opt.DATA_ROOT) do
 end
 table.sort(filenames)
 
-for bat = 1, opt.batchNum do
-
-    local image_ctx = data:getBatch()
+for i = 1, #filenames do
+	local image_path = filenames[i]
+    local image_ctx = image.load(image_path)
     local refNetG_ctx = image_ctx:clone()
     local netG_ctx = image_ctx:clone()
     local ground_truth = image_ctx:clone()
