@@ -10,13 +10,13 @@ opt = {
     batchNum = 5,
     batchSize = 64,        -- number of samples to produce
                -- path to the generator network
-    name = 'test_paris_fcgan_wfeat0.5',      
+    name = 'test_paris_fcgan_wfeat50',
                            -- name of the experiment and prefix of file saved
     gpu = 1,               -- gpu mode. 0 = CPU, 1 = 1st GPU etc.
     nc = 3,                -- # of channels in input
     display = 0,           -- Display image: 0 = false, 1 = true
     loadSize = 128,        -- resize the loaded image to loadsize maintaining aspect ratio. 0 means don't resize. 
-                   -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
+                           -- -1 means scale randomly between [0.5,2] -- see donkey_folder.lua
     fineSize = 128,        -- size of random crops
     nThreads = 1,          -- # of data loading threads to use
     manualSeed = 2017,     -- 0 means random seed
@@ -37,6 +37,7 @@ opt = {
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
+print(opt.DATA_ROOT)
 
 -- set seed
 if opt.manualSeed == 0 then
@@ -126,6 +127,14 @@ local timer = torch.Timer()
 local bcnt = 0
 paths.rmall(opt.name,'yes')
 paths.mkdir(opt.name)
+
+local filenames = {}
+for f in paths.iterfiles(opt.DATA_ROOT) do
+    local fullname = paths.concat(opt.DATA_ROOT, f)
+	filenames[#filenames+1] = fullname
+	print(fullname)
+end
+table.sort(filenames)
 
 for bat = 1, opt.batchNum do
 
