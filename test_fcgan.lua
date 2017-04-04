@@ -38,7 +38,6 @@ opt = {
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
-print(opt.DATA_ROOT)
 
 -- set seed
 if opt.manualSeed == 0 then
@@ -133,7 +132,6 @@ local filenames = {}
 for f in paths.iterfiles(opt.DATA_ROOT) do
     local fullname = paths.concat(opt.DATA_ROOT, f)
 	filenames[#filenames+1] = fullname
-	print(fullname)
 end
 table.sort(filenames)
 
@@ -165,6 +163,7 @@ for i = 1, #filenames do
     -- 128 x 128 -> 64 x 64
 
     -- calculate loss
+	netG_pred:add(1.0):mul(0.5)
     local netG_l1loss56
     local netG_l2loss56
     netG_l1loss56 = criterionABS:forward(crop_center(netG_pred,56),gt[56]:cuda())
@@ -182,7 +181,6 @@ for i = 1, #filenames do
     -- re-transform scale back to normal
     netG_ctx:add(1):mul(0.5)
     netG_input:add(1):mul(0.5)
-    netG_pred:add(1):mul(0.5)
 
     -- save outputs in a pretty manner
     gt[56]=nil;
