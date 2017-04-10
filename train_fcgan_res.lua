@@ -138,15 +138,24 @@ local function weights_init(m)
    end
 end
 
+local Convolution = nn.SpatialConvolution
 local SBatchNorm = nn.SpatialBatchNormalization
 local function basicblock(nInputPlane, nOutputPlane, stride)
     local block = nn.Sequential()
     local s = nn.Sequential()
     s:add(SBatchNorm(nInputPlane))
     s:add(nn.ReLU(true))
-    s:add(Convolutional(nInputPlane,nOutputPlane,3,3,stride,stride,1,1))
+    s:add(Convolution(nInputPlane,nOutputPlane,3,3,stride,stride,1,1))
     s:add(SBatchNorm(n))
     s:add(nn.ReLU(true))
+    s:add(Convolution(nOutputPlane,nOutputPlane,3,3,1,1,1,1))
+    
+    return block
+        :add(nn.ConcatTable()
+            :add(s)
+            :add(nn.Identity()))
+        :add(nn.CAddTable(true))
+end
 
 local nc = opt.nc
 local nz = opt.nz
