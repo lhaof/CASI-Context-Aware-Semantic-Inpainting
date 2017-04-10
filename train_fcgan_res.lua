@@ -27,7 +27,7 @@ opt = {
    display_id = 10,        -- display window id.
    display_iter = 50,      -- # number of iterations after which display is updated
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
-   name = 'paris_fcgan_res_wfeat0',   -- name of the experiment you are running
+   name = 'paris_fcgan_res_wfeat50',   -- name of the experiment you are running
    manualSeed = 0,         -- 0 means random seed
 
    -- Extra Options:
@@ -44,10 +44,10 @@ opt = {
    w_adv = 1,
    --w_rec = 799,
    --w_feat = 200,
-   --w_rec = 949,
-   --w_feat = 50,
-   w_rec = 999,
-   w_feat = 0,
+   w_rec = 949,
+   w_feat = 50,
+   --w_rec = 999,
+   --w_feat = 0,
 
    -- resnet mean & std
    featNet_mean1 = 0.485,
