@@ -194,8 +194,12 @@ netE:add(SpatialBatchNormalization(nef * 4)):add(nn.ReLU(true))
 netE:add(SpatialConvolution(nef * 4, nef * 4, 3, 3, 1, 1, 1, 1))
 netE:add(SpatialBatchNormalization(nef * 4)):add(nn.ReLU(true))
 -- state size: (nef*4) x 16 x 16
+netE:add(basicblock(nef * 4, nef * 4, 1))
+-- state size: (nef*4) x 16 x 16
 netE:add(SpatialConvolution(nef * 4, nef * 8, 3, 3, 1, 1, 1, 1))
 netE:add(SpatialBatchNormalization(nef * 8)):add(nn.ReLU(true))
+-- state size: (nef*8) x 16 x 16
+netE:add(basicblock(nef * 8, nef * 8, 1))
 -- state size: (nef*8) x 16 x 16
 netE:add(SpatialConvolution(nef * 8, nef * 4, 3, 3, 1, 1, 1, 1))
 netE:add(SpatialBatchNormalization(nef * 4)):add(nn.ReLU(true))
