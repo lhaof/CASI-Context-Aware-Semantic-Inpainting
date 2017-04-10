@@ -138,6 +138,16 @@ local function weights_init(m)
    end
 end
 
+local SBatchNorm = nn.SpatialBatchNormalization
+local function basicblock(nInputPlane, nOutputPlane, stride)
+    local block = nn.Sequential()
+    local s = nn.Sequential()
+    s:add(SBatchNorm(nInputPlane))
+    s:add(nn.ReLU(true))
+    s:add(Convolutional(nInputPlane,nOutputPlane,3,3,stride,stride,1,1))
+    s:add(SBatchNorm(n))
+    s:add(nn.ReLU(true))
+
 local nc = opt.nc
 local nz = opt.nz
 local nBottleneck = opt.nBottleneck
