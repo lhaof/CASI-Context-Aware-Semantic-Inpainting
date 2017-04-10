@@ -146,7 +146,7 @@ local function basicblock(nInputPlane, nOutputPlane, stride)
     s:add(SBatchNorm(nInputPlane))
     s:add(nn.ReLU(true))
     s:add(Convolution(nInputPlane,nOutputPlane,3,3,stride,stride,1,1))
-    s:add(SBatchNorm(n))
+    s:add(SBatchNorm(nOutputPlane))
     s:add(nn.ReLU(true))
     s:add(Convolution(nOutputPlane,nOutputPlane,3,3,1,1,1,1))
     
