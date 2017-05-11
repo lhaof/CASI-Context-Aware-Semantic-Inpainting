@@ -58,6 +58,14 @@ if opt.dataset == 'Paris' then
 	opt.mean_value2 = opt.paris_mean2
 	opt.mean_value3 = opt.paris_mean3
 end
+if opt.dataset == 'imagenet' or 
+	opt.dataset == 'Imagenet' or
+	opt.dataset == 'imgnet' or
+	opt.dataset == 'Imgnet' then
+	opt.mean_value1 = opt.imgnet20_mean1
+	opt.mean_value2 = opt.imgnet20_mean2
+	opt.mean_value3 = opt.imgnet20_mean3
+end
 
 -- criterion used to compute loss
 criterion = nn.BCECriterion()
@@ -139,6 +147,19 @@ table.sort(filenames)
 for i = 1, #filenames do
 	local image_path = filenames[i]
     local image_ctx = image.load(image_path)
+    if image_ctx:size(2) < image_ctx:size(3) then
+    	local y1 = 0
+    	local y2 = image_ctx:size(2)
+    	local x1 = ( image_ctx:size(3) - image_ctx:size(2) ) / 2
+    	local x2 = x1 + image_ctx:size(2)
+    	image_ctx = image.crop(image_ctx, x1, y1, x2, y2)
+    else
+    	local x1 = 0
+    	local x2 = image_ctx:size(3)
+    	local y1 = ( image_ctx:size(2) - image_ctx:size(3) ) / 2
+    	local y2 = y1 + image_ctx:size(3)
+    	image_ctx = image.crop(image_ctx, x1, y1, x2, y2)
+    end
 	image_ctx = image.scale(image_ctx, opt.loadSize)
     local netG_ctx = image_ctx:clone()
     local ground_truth = image_ctx:clone()
