@@ -27,7 +27,8 @@ opt = {
    display_id = 10,        -- display window id.
    display_iter = 50,      -- # number of iterations after which display is updated
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
-   name = 'paris_fcgan_res_wfeat50',   -- name of the experiment you are running
+   -- name = 'paris_fcgan_res_wfeat50',   -- name of the experiment you are running
+   name = 'imgnet20_fcgan_res_wfeat200',   -- name of the experiment you are running
    manualSeed = 0,         -- 0 means random seed
 
    -- Extra Options:
@@ -36,16 +37,16 @@ opt = {
    noisetype = 'normal',   -- uniform / normal
    nz = 100,               -- #  of dim for Z
 
-   featNet = '/home/liguanbin/hfli/download/resnet-18.t7',
+   featNet = '../download/resnet-18.t7',
    loadNetG = '',
    loadNetD = '',
    begin_epoch = 1,
 
    w_adv = 1,
-   --w_rec = 799,
-   --w_feat = 200,
-   w_rec = 949,
-   w_feat = 50,
+   w_rec = 799,
+   w_feat = 200,
+   --w_rec = 949,
+   --w_feat = 50,
    --w_rec = 999,
    --w_feat = 0,
 
@@ -67,8 +68,8 @@ opt = {
    mean_value2 = 0.5,
    mean_value3 = 0.5,
 
-   dataset = 'Paris',
-   --dataset = 'ImageNet',
+   --dataset = 'Paris',
+   dataset = 'ImageNet',
 }
 
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end

@@ -559,7 +559,8 @@ for epoch = opt.begin_epoch, opt.niter do
 	  local modelG = 'checkpoints/'..opt.name..'_'..epoch..'_net_G.t7'
 	  local modelD = 'checkpoints/'..opt.name..'_'..epoch..'_net_D.t7'
 	  local logName = 'log_'..opt.name..'_'..epoch
-      util.save(modelG, netG, opt.gpu)
+      --util.save(modelG, netG, opt.gpu)
+      torch.save(modelG, netG)
       util.save(modelD, netD, opt.gpu)
    end
 
