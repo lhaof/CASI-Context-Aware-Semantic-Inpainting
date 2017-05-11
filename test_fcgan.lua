@@ -1,4 +1,4 @@
-
+require 'nngraph'
 require 'image'
 require 'cunn'
 require 'cudnn'
@@ -47,7 +47,8 @@ torch.manualSeed(opt.manualSeed)
 
 -- load networks
 assert(opt.netG ~= '', 'provide a generator model')
-netG = util.load(opt.netG, opt.gpu)
+--netG = util.load(opt.netG, opt.gpu)
+netG = torch.load(opt.netG)
 netG:evaluate()
 
 -- initialize variables
