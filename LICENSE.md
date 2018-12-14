@@ -1,3 +1,8 @@
+Copyright (c) 2018, Haofeng LI and the University of Hong Kong. 
+All Rights Reserved. 
+
+--------------------------------------------------------
+
 UC Berkeley's Standard Copyright and Disclaimer Notice:
 
 Copyright (c) 2016, Deepak Pathak
