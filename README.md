@@ -1,4 +1,8 @@
 # CASI-Context-Aware-Semantic-Inpainting
+<p align="center">
+  <img src="CASI_sample.png" width="500" title="CASI_sample">
+</p>
+
 This is the code for `CASI: Context-Aware-Semantic-Inpainting' IEEE Transaction on Cybernetics 2018.
 
 If you use this code, you need to cite the following paper
